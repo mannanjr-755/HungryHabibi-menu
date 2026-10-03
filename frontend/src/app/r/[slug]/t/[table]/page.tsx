@@ -11,15 +11,60 @@ type Props = {
   params: Promise<{ slug: string; table: string }>;
 };
 
+const LEGACY_PRIMARY_SLUGS = new Set(["hungryhabibi", "BonPainer", "Hungry Habibi"]);
+
+async function resolveRestaurant(slug: string, tableNumber: number) {
+  const include = {
+    categories: {
+      orderBy: { sortOrder: "asc" as const },
+      include: {
+        items: {
+          where: { available: true },
+          orderBy: { name: "asc" as const },
+        },
+      },
+    },
+    tables: {
+      where: { tableNumber, active: true },
+    },
+  };
+
+  const exact = await prisma.restaurant.findUnique({
+    where: { slug },
+    include,
+  });
+  if (exact) return exact;
+
+  if (!LEGACY_PRIMARY_SLUGS.has(slug)) return null;
+
+  return prisma.restaurant.findFirst({
+    where: {
+      OR: [
+        { slug: "hungryhabibi" },
+        { slug: "BonPainer" },
+        { slug: "Hungry Habibi" },
+      ],
+    },
+    include,
+  });
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   await connection();
   const restaurant =
-    (await prisma?.restaurant?.findUnique({ where: { slug } })) ??
-    (slug === "BonPainer" ? await prisma?.restaurant?.findFirst() : null);
+    (await prisma.restaurant.findUnique({ where: { slug } })) ??
+    (LEGACY_PRIMARY_SLUGS.has(slug)
+      ? await prisma.restaurant.findFirst({
+          where: {
+            OR: [{ slug: "hungryhabibi" }, { slug: "BonPainer" }, { slug: "Hungry Habibi" }],
+          },
+        })
+      : null);
+
   return {
-    title: "Menu",
-    description: restaurant?.description ?? "Digital restaurant menu",
+    title: restaurant?.name ? `${restaurant.name} Menu` : "HungryHabibi Menu",
+    description: restaurant?.description ?? "HungryHabibi digital restaurant menu",
   };
 }
 
@@ -34,42 +79,7 @@ export default async function TableMenuPage({ params }: Props) {
     notFound();
   }
 
-  const restaurant =
-    (await prisma?.restaurant?.findUnique({
-      where: { slug },
-      include: {
-        categories: {
-          orderBy: { sortOrder: "asc" },
-          include: {
-            items: {
-              where: { available: true },
-              orderBy: { name: "asc" },
-            },
-          },
-        },
-        tables: {
-          where: { tableNumber, active: true },
-        },
-      },
-    })) ??
-    (slug === "BonPainer"
-      ? await prisma.restaurant.findFirst({
-          include: {
-            categories: {
-              orderBy: { sortOrder: "asc" },
-              include: {
-                items: {
-                  where: { available: true },
-                  orderBy: { name: "asc" },
-                },
-              },
-            },
-            tables: {
-              where: { tableNumber, active: true },
-            },
-          },
-        })
-      : null);
+  const restaurant = await resolveRestaurant(slug, tableNumber);
 
   if (!restaurant || restaurant.tables.length === 0) {
     notFound();
@@ -105,13 +115,18 @@ export default async function TableMenuPage({ params }: Props) {
       }
     : null;
 
+  const displayName =
+    restaurant.slug === "hungryhabibi" || LEGACY_PRIMARY_SLUGS.has(slug)
+      ? "HungryHabibi"
+      : restaurant.name;
+
   return (
     <Suspense>
       <CustomerMenu
         restaurant={{
-          name: slug === "BonPainer" ? "BonPainer" : restaurant.name,
+          name: displayName,
           slug: restaurant.slug,
-          logo: restaurant.logo,
+          logo: restaurant.logo ?? "/logo.png",
           coverImage: restaurant.coverImage,
           description: restaurant.description,
           phone: restaurant.phone,

@@ -4,11 +4,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "BonPainer · Digital Menu",
-    template: "%s · BonPainer",
+    default: "HungryHabibi | Digital Menu",
+    template: "%s | HungryHabibi",
   },
   description:
-    "BonPainer digital restaurant menu and kitchen dashboard — NFC/QR table ordering.",
+    "HungryHabibi digital restaurant menu and kitchen dashboard — NFC/QR table ordering.",
   icons: {
     icon: "/logo.png",
     apple: "/logo.png",
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
-          href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap"
+          href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
       </head>

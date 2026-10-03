@@ -1,5 +1,5 @@
 {
-  "name": "restaurantorder",
+  "name": "hungryhabibi-menu",
   "version": "0.1.0",
   "private": true,
   "workspaces": [
@@ -14,7 +14,8 @@
     "db:push": "npm run db:push --workspace=backend",
     "db:seed": "npm run db:seed --workspace=backend",
     "db:studio": "npm run db:studio --workspace=backend",
-    "db:reset": "npm run db:reset --workspace=backend"
+    "db:reset": "npm run db:reset --workspace=backend",
+    "db:verify": "dotenv -e .env -- node scripts/verify-db.js"
   },
   "devDependencies": {
     "concurrently": "^9.1.2",

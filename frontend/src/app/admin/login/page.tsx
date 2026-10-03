@@ -43,14 +43,14 @@ export default function AdminLoginPage() {
         <div className="mb-8 text-center">
           <Image
             src="/logo.png"
-            alt="BonPainer"
+            alt="HungryHabibi"
             width={72}
             height={72}
-            className="mx-auto mb-4 h-[72px] w-[72px] rounded-full object-cover"
+            className="mx-auto mb-4 h-[72px] w-[72px] rounded-full bg-[var(--bg-card)] object-contain p-1 ring-1 ring-[var(--gold)]/35"
             priority
           />
-          <h1 className="font-display text-2xl text-[var(--gold-bright)]">Staff Login</h1>
-          <p className="mt-1 text-sm text-[var(--text-muted)]">Sign in to manage your restaurant</p>
+          <h1 className="font-display text-2xl text-[var(--gold-bright)]">HungryHabibi</h1>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">Staff login · manage your digital menu</p>
         </div>
 
         <form

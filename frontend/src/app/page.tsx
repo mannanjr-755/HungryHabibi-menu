@@ -7,51 +7,53 @@ const crmBase =
 export default function HomePage() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[var(--bg)] text-[var(--text)]">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(166,112,102,0.22),transparent_45%)]" />
+      <div className="habibi-glow pointer-events-none absolute inset-0" />
 
-      <header className="relative mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+      <header className="relative mx-auto flex max-w-6xl items-center justify-between px-4 py-5 sm:px-6 sm:py-6">
         <div className="flex items-center gap-3">
           <Image
             src="/logo.png"
-            alt="BonPainer"
-            width={44}
-            height={44}
-            className="h-11 w-11 rounded-full object-cover"
+            alt="HungryHabibi"
+            width={52}
+            height={52}
+            className="h-12 w-12 rounded-full object-cover ring-1 ring-[var(--gold)]/40 sm:h-14 sm:w-14"
             priority
           />
           <div>
-            <p className="font-display text-xl text-[var(--gold-bright)]">BonPainer</p>
-            <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--text-dim)]">
-              The French Bakery Cafe & Store
+            <p className="font-display text-xl tracking-wide text-[var(--gold-bright)] sm:text-2xl">
+              HungryHabibi
+            </p>
+            <p className="text-[10px] uppercase tracking-[0.28em] text-[var(--text-dim)]">
+              Digital menu
             </p>
           </div>
         </div>
         <a
           href={`${crmBase}/login`}
-          className="rounded-full border border-[var(--gold)]/40 px-5 py-2 text-sm text-[var(--gold-bright)] transition hover:bg-[var(--gold)]/10"
+          className="rounded-full border border-[var(--gold)]/40 px-4 py-2 text-sm text-[var(--gold-bright)] transition hover:bg-[var(--gold)]/10 sm:px-5"
         >
           Staff login
         </a>
       </header>
 
-      <main className="relative mx-auto max-w-6xl px-6 pb-24 pt-16 sm:pt-24">
+      <main className="relative mx-auto max-w-6xl px-4 pb-20 pt-14 sm:px-6 sm:pb-24 sm:pt-24">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[var(--gold)]">
-          Digital menu · Kitchen dashboard
+          Table ordering · Live kitchen
         </p>
-        <h1 className="font-display mt-4 max-w-3xl text-5xl leading-tight text-[var(--text)] sm:text-7xl">
-          BonPainer
+        <h1 className="font-display mt-4 max-w-3xl text-5xl leading-[1.05] text-[var(--text)] sm:text-7xl">
+          <span className="gold-text">HungryHabibi</span>
         </h1>
         <p className="mt-6 max-w-2xl text-base leading-relaxed text-[var(--text-muted)] sm:text-lg">
-          Customers scan a table QR or NFC tag, order from your digital menu, and staff see every
-          order appear live on the counter dashboard.
+          Scan a table QR or NFC tag, browse the menu, and place your order. Staff see every order
+          appear live on the kitchen dashboard.
         </p>
 
         <div className="mt-10 flex flex-wrap gap-3">
           <Link
-            href="/r/BonPainer/t/12"
-            className="rounded-md bg-[var(--gold)] px-7 py-3.5 text-sm font-bold uppercase tracking-wider text-[var(--bg)]"
+            href="/r/hungryhabibi/t/12"
+            className="gold-gradient rounded-md px-7 py-3.5 text-sm font-bold uppercase tracking-wider text-[#0c0b09] shadow-[0_8px_24px_rgba(201,162,39,0.25)]"
           >
-            Try demo menu
+            Open menu
           </Link>
           <a
             href={`${crmBase}/login`}
@@ -61,22 +63,25 @@ export default function HomePage() {
           </a>
         </div>
 
-        <dl className="mt-20 grid gap-5 sm:grid-cols-3">
+        <dl className="mt-16 grid gap-4 sm:mt-20 sm:grid-cols-3 sm:gap-5">
           {[
             {
               title: "Table URL",
-              body: "/r/BonPainer/t/12 — NFC and QR only store this link.",
+              body: "/r/hungryhabibi/t/12 — NFC and QR only store this link.",
             },
             {
               title: "Live orders",
               body: "NEW → ACCEPTED → PREPARING → READY → COMPLETED",
             },
             {
-              title: "Multi-restaurant",
-              body: "Each restaurant only sees its own menu, tables, and orders.",
+              title: "Shared database",
+              body: "Menu and orders sync with your Neon PostgreSQL database.",
             },
           ].map((item) => (
-            <div key={item.title} className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-5">
+            <div
+              key={item.title}
+              className="rounded-xl border border-[var(--border)] bg-[var(--bg-card)] p-5"
+            >
               <dt className="font-display text-lg text-[var(--gold-bright)]">{item.title}</dt>
               <dd className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">{item.body}</dd>
             </div>

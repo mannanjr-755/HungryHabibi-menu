@@ -11,50 +11,79 @@ const prisma = new PrismaClient({
   adapter: new PrismaNeon({ connectionString }),
 });
 
-const BRAND_SLUG = "BonPainer";
+const BRAND_NAME = "HungryHabibi";
+const BRAND_SLUG = "hungryhabibi";
+const LEGACY_SLUGS = ["BonPainer", "Hungry Habibi", "hungry-habibi"];
 const PIZZA_SLUG = "pizza-palace";
 const BRAND_TABLES = 12;
 
 async function main() {
-  console.log("Seeding BonPainer demo data (insert-only, safe for shared databases)...");
+  console.log("Seeding HungryHabibi data (insert-only, safe for shared databases)...");
 
   const passwordHash = await bcrypt.hash("password123", 10);
 
-  const brand = await prisma.restaurant.upsert({
-    where: { slug: BRAND_SLUG },
-    update: {
-      name: "BonPainer",
-      logo: "/logo.png",
-    },
-    create: {
-      name: "BonPainer",
-      slug: BRAND_SLUG,
-      logo: "/logo.png",
-      coverImage:
-        "https://images.unsplash.com/photo-1558030006-450675393462?w=1400&h=700&fit=crop",
-      description: "Delicious food, great mood! Explore our chef's special dishes made just for you.",
-      phone: "+92 300 1234567",
-      whatsapp: "+923001234567",
-      address: "12 Gourmet Avenue, City Center",
-      googleMapsUrl: "https://maps.google.com",
-      openingHours: JSON.stringify({
-        mon: "11:00–23:00",
-        tue: "11:00–23:00",
-        wed: "11:00–23:00",
-        thu: "11:00–23:00",
-        fri: "11:00–00:00",
-        sat: "11:00–00:00",
-        sun: "12:00–22:00",
-      }),
-      socialLinks: JSON.stringify({
-        instagram: "https://instagram.com",
-        facebook: "https://facebook.com",
-      }),
-    },
-  });
+  // Prefer migrating an existing BonPainer / legacy restaurant so real menu data is kept.
+  let brand = await prisma.restaurant.findUnique({ where: { slug: BRAND_SLUG } });
+  if (!brand) {
+    for (const legacySlug of LEGACY_SLUGS) {
+      const legacy = await prisma.restaurant.findUnique({ where: { slug: legacySlug } });
+      if (legacy) {
+        brand = await prisma.restaurant.update({
+          where: { id: legacy.id },
+          data: {
+            name: BRAND_NAME,
+            slug: BRAND_SLUG,
+            logo: "/logo.png",
+            description:
+              legacy.description ??
+              "Delicious food, great mood! Explore our chef's special dishes made just for you.",
+          },
+        });
+        console.log(`Migrated restaurant slug "${legacySlug}" → "${BRAND_SLUG}".`);
+        break;
+      }
+    }
+  }
 
-  // Auth looks up emails in lowercase — store lowercase to match.
-  const adminEmail = "admin@bonpainer.com";
+  if (!brand) {
+    brand = await prisma.restaurant.create({
+      data: {
+        name: BRAND_NAME,
+        slug: BRAND_SLUG,
+        logo: "/logo.png",
+        coverImage:
+          "https://images.unsplash.com/photo-1558030006-450675393462?w=1400&h=700&fit=crop",
+        description: "Delicious food, great mood! Explore our chef's special dishes made just for you.",
+        phone: "+92 300 1234567",
+        whatsapp: "+923001234567",
+        address: "12 Gourmet Avenue, City Center",
+        googleMapsUrl: "https://maps.google.com",
+        openingHours: JSON.stringify({
+          mon: "11:00–23:00",
+          tue: "11:00–23:00",
+          wed: "11:00–23:00",
+          thu: "11:00–23:00",
+          fri: "11:00–00:00",
+          sat: "11:00–00:00",
+          sun: "12:00–22:00",
+        }),
+        socialLinks: JSON.stringify({
+          instagram: "https://instagram.com",
+          facebook: "https://facebook.com",
+        }),
+      },
+    });
+  } else {
+    brand = await prisma.restaurant.update({
+      where: { id: brand.id },
+      data: {
+        name: BRAND_NAME,
+        logo: "/logo.png",
+      },
+    });
+  }
+
+  const adminEmail = "admin@hungryhabibi.com";
   await prisma.user.upsert({
     where: { email: adminEmail },
     update: { restaurantId: brand.id, active: true, passwordHash, name: "Admin", role: "ADMIN" },
@@ -67,13 +96,14 @@ async function main() {
     },
   });
 
-  // Clean up legacy mixed-case admin email if present
-  const legacyAdmin = await prisma.user.findUnique({ where: { email: "admin@BonPainer.com" } });
-  if (legacyAdmin) {
-    await prisma.user.delete({ where: { id: legacyAdmin.id } });
+  // Clean up legacy admin emails if present
+  for (const legacyEmail of ["admin@bonpainer.com", "admin@BonPainer.com", "admin@hungry habibi.com"]) {
+    const legacyAdmin = await prisma.user.findUnique({ where: { email: legacyEmail } });
+    if (legacyAdmin && legacyAdmin.email !== adminEmail) {
+      await prisma.user.delete({ where: { id: legacyAdmin.id } });
+    }
   }
 
-  // 12 tables (demo highlights table 12)
   for (let n = 1; n <= BRAND_TABLES; n++) {
     const existing = await prisma.table.findFirst({
       where: { restaurantId: brand.id, tableNumber: n },
@@ -90,7 +120,7 @@ async function main() {
       data: {
         restaurantId: brand.id,
         tableNumber: n,
-        uniqueCode: `BonPainer-t${n}-${Math.random().toString(36).slice(2, 8)}`,
+        uniqueCode: `hungryhabibi-t${n}-${Math.random().toString(36).slice(2, 8)}`,
         active: true,
       },
     });
@@ -176,21 +206,49 @@ async function main() {
         data: { restaurantId: brand.id, name: categoryData.name, sortOrder },
       });
       await prisma.menuItem.createMany({
-        data: categoryData.items.map((name) => ({
+        data: categoryData.items.map((name, index) => ({
           restaurantId: brand.id,
           categoryId: category.id,
           name,
-          price: 0,
+          // Placeholder prices for a fresh seed — CRM/admin can edit later.
+          // Beverages & Sides use lower defaults.
+          price:
+            categoryData.name === "Beverages & Sides"
+              ? [120, 50, 80, 100, 80][index] ?? 100
+              : categoryData.name === "Tandoor"
+                ? [30, 60][index] ?? 50
+                : 450 + index * 50,
           available: true,
         })),
       });
     }
-    console.log(`Inserted BonPainer menu with ${requestedMenu.length} categories.`);
+    console.log(`Inserted HungryHabibi menu with ${requestedMenu.length} categories.`);
   } else {
-    console.log(`BonPainer already has ${existingCategories} menu categories — left untouched.`);
+    console.log(`HungryHabibi already has ${existingCategories} menu categories — left untouched.`);
   }
 
-  // Keep a second restaurant for isolation testing
+  // Backfill placeholder prices if items were previously seeded at 0.
+  const zeroPriceItems = await prisma.menuItem.findMany({
+    where: { restaurantId: brand.id, price: 0 },
+    include: { category: { select: { name: true } } },
+    orderBy: { name: "asc" },
+  });
+  if (zeroPriceItems.length > 0) {
+    let i = 0;
+    for (const item of zeroPriceItems) {
+      const categoryName = item.category?.name ?? "";
+      const price =
+        categoryName === "Beverages & Sides"
+          ? 100
+          : categoryName === "Tandoor"
+            ? 50
+            : 450 + (i % 8) * 50;
+      await prisma.menuItem.update({ where: { id: item.id }, data: { price } });
+      i += 1;
+    }
+    console.log(`Updated ${zeroPriceItems.length} items that had price 0.`);
+  }
+
   const pizza = await prisma.restaurant.upsert({
     where: { slug: PIZZA_SLUG },
     update: {},
@@ -230,8 +288,8 @@ async function main() {
   }
 
   console.log("Done!");
-  console.log("Customer menu: /r/BonPainer/t/12");
-  console.log("Admin login: admin@bonpainer.com / password123");
+  console.log("Customer menu: /r/hungryhabibi/t/12");
+  console.log("Admin login: admin@hungryhabibi.com / password123");
 }
 
 main()

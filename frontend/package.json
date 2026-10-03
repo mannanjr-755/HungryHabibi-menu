@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "dotenv -e ../.env -- next dev -p 3000",
-    "build": "prisma generate --schema=../backend/prisma/schema.prisma && next build",
+    "build": "prisma generate --schema=../backend/prisma/schema.prisma && dotenv -e ../.env -- next build",
     "start": "dotenv -e ../.env -- next start -p 3000",
     "lint": "eslint"
   },

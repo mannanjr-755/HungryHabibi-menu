@@ -1,6 +1,6 @@
 import { prisma } from "./prisma";
 
-/** Generate next order number for a restaurant, e.g. BH-0001 */
+/** Generate next order number for a restaurant, e.g. HH-0001 */
 export async function generateOrderNumber(restaurantId: string, slug: string): Promise<string> {
   const prefix = slug
     .split("-")
